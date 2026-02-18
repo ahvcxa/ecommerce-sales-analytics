@@ -1,0 +1,1 @@
+# (Hesaplama ve istatistik fonksiyonları)
