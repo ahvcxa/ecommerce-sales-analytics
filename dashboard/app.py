@@ -60,7 +60,30 @@ if secilen_sayfa == "Genel Bakış":
 
 elif secilen_sayfa == "Kategori Analizi":
     st.title("📦 Kategori ve Ürün Performansı")
-    st.write("*(Buraya kategoriler gelecek)*")
+    
+    # 1. Kategori Dağılımı (Pasta Grafik)s
+    st.subheader("Kategorilerin Ciroya Katkısı")
+    cat_perf = get_category_performance(df)
+    
+    fig_pie = px.pie(
+        cat_perf, 
+        values='TotalAmount', 
+        names='CategoryName', 
+        hole=0.3 # Ortası delik (Donut) stili daha modern durur
+    )
+    st.plotly_chart(fig_pie, use_container_width=True)
+    
+    st.markdown("---")
+    
+    # 2. En Çok Satan 10 Ürün Tablosu
+    st.subheader("🏆 En Çok Satan 10 Ürün")
+    top_products = get_top_products(df, n=10)
+    
+    # Tabloyu daha şık göstermek için sütun isimlerini arayüzde Türkçe yapıyoruz
+    top_products = top_products.rename(columns={'ProductName': 'Ürün Adı', 'TotalAmount': 'Toplam Ciro (₺)'})
+    
+    # Tabloyu Streamlit dataframe ile basıyoruz
+    st.dataframe(top_products, use_container_width=True, hide_index=True)
     
 elif secilen_sayfa == "Akıllı Öneri Motoru":
     # Batuhan'ın kodları tamamen buraya taşındı
