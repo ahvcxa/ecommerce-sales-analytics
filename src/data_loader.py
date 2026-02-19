@@ -1,7 +1,4 @@
-#(Veri yükleme ve temizleme fonksiyonları)
-
-
-
+# Veri yükleme ve temizleme fonksiyonları
 import pandas as pd
 import os
 
