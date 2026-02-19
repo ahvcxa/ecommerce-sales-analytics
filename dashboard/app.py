@@ -218,7 +218,7 @@ elif secilen_sayfa == "Akıllı Öneri Motoru":
             st.write(f"✅ {item}")
 
 elif secilen_sayfa == "Müşteri Segmentasyonu":
-    st.title("👥 Müşteri Segmentasyonu (RFM)")
+    st.title("👥 Müşteri Segmentasyonu")
     
     # Veriyi hesapla
     rfm_df = calculate_rfm(df)
