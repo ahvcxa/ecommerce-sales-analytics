@@ -10,10 +10,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MATRIX_PATH = os.path.join(BASE_DIR, 'data', 'processed', 'user_item_matrix.csv')
 
 # Tabloyu oku
+# Eren'in matrix benzerlik tablosu.
 df_matrix = pd.read_csv(MATRIX_PATH, index_col=0)
 
 # Ürünleri satıra alıp, devasa benzerlik matrisini BİR KERE hesapla
 item_matrix = df_matrix.T
+# O 0'ları ve sayıları kullanarak, ürünlerin birbirine olan açısını hesaplattık:
 sim_array = cosine_similarity(item_matrix)
 sim_df = pd.DataFrame(sim_array, index=item_matrix.index, columns=item_matrix.index)
 
