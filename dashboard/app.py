@@ -26,6 +26,25 @@ df = fetch_data()
 # --- SOL MENÜ ---
 st.sidebar.title("Navigasyon 🧭")
 secilen_sayfa = st.sidebar.radio("Sayfa Seçin:", ["Genel Bakış", "Kategori Analizi", "Müşteri Segmentasyonu", "Akıllı Öneri Motoru"])
+st.sidebar.markdown("---")
+st.sidebar.subheader("📅 Tarih Filtresi")
+    
+    # Veritabanındaki en eski ve en yeni tarihi bul
+min_date = df['OrderDate'].min().date()
+max_date = df['OrderDate'].max().date()
+    
+    # Kullanıcıya takvim sun
+secilen_tarihler = st.sidebar.date_input(
+        "Aralık Seçin:", 
+    [min_date, max_date], 
+    min_value=min_date, 
+    max_value=max_date
+)
+    
+    # Eğer kullanıcı iki tarih seçtiyse veriyi filtrele
+if len(secilen_tarihler) == 2:
+        baslangic, bitis = secilen_tarihler
+        df = df[(df['OrderDate'].dt.date >= baslangic) & (df['OrderDate'].dt.date <= bitis)]
 if df.empty:
     st.error("Veri yüklenemedi! Lütfen terminali kontrol et.")
     st.stop()
@@ -85,6 +104,26 @@ elif secilen_sayfa == "Kategori Analizi":
     
     # Tabloyu Streamlit dataframe ile basıyoruz
     st.dataframe(top_products, use_container_width=True, hide_index=True)
+    st.markdown("---")
+    st.subheader("🗺️ Ürün Satış Yoğunluk Haritası")
+    st.write("Kutuların büyüklüğü ve koyu yeşil tonları, ürünün toplam cirodaki ağırlığını gösterir.")
+    
+    # Kategori ve ürün bazında ciroları toparla
+    tree_df = df.groupby(['CategoryName', 'ProductName'])['TotalAmount'].sum().reset_index()
+    tree_df = tree_df[tree_df['TotalAmount'] > 0] # Sadece satışı olanları al
+    
+    # Treemap Çizimi
+    fig_tree = px.treemap(
+        tree_df, 
+        path=['CategoryName', 'ProductName'], 
+        values='TotalAmount',
+        color='TotalAmount',
+        color_continuous_scale='Greens' 
+    )
+    fig_tree.update_traces(root_color="lightgrey")
+    fig_tree.update_layout(margin=dict(t=10, l=10, r=10, b=10))
+    
+    st.plotly_chart(fig_tree, use_container_width=True)
     
 elif secilen_sayfa == "Akıllı Öneri Motoru":
     # Batuhan'ın kodları tamamen buraya taşındı
