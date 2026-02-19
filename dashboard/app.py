@@ -4,13 +4,14 @@ import os
 import pandas as pd
 import plotly.express as px # Alan grafiği için eklendi
 
+
 # Ana dizini sisteme tanıtıyoruz
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR)
 
 # Tüm fonksiyonları içeri aktarıyoruz
 from src.data_loader import load_data
-from src.analysis import calculate_kpis, get_monthly_sales, get_category_performance
+from src.analysis import calculate_kpis, get_monthly_sales, get_category_performance, get_top_products,calculate_rfm
 from src.recommender import get_recommendations, sim_df # Batuhan'ın importları eklendi
 
 # Sayfa Ayarları
@@ -24,8 +25,7 @@ df = fetch_data()
 
 # --- SOL MENÜ ---
 st.sidebar.title("Navigasyon 🧭")
-secilen_sayfa = st.sidebar.radio("Sayfa Seçin:", ["Genel Bakış", "Kategori Analizi", "Akıllı Öneri Motoru"])
-
+secilen_sayfa = st.sidebar.radio("Sayfa Seçin:", ["Genel Bakış", "Kategori Analizi", "Müşteri Segmentasyonu", "Akıllı Öneri Motoru"])
 if df.empty:
     st.error("Veri yüklenemedi! Lütfen terminali kontrol et.")
     st.stop()
@@ -81,6 +81,7 @@ elif secilen_sayfa == "Kategori Analizi":
     
     # Tabloyu daha şık göstermek için sütun isimlerini arayüzde Türkçe yapıyoruz
     top_products = top_products.rename(columns={'ProductName': 'Ürün Adı', 'TotalAmount': 'Toplam Ciro (₺)'})
+    top_products['Toplam Ciro (₺)'] = top_products['Toplam Ciro (₺)'].apply(lambda x: f"{x:,.0f}".replace(',', '.'))
     
     # Tabloyu Streamlit dataframe ile basıyoruz
     st.dataframe(top_products, use_container_width=True, hide_index=True)
@@ -98,3 +99,43 @@ elif secilen_sayfa == "Akıllı Öneri Motoru":
         oneriler = get_recommendations(secilen_urun)
         for i, urun in enumerate(oneriler, 1):
             st.write(f"{i}. {urun}")
+
+elif secilen_sayfa == "Müşteri Segmentasyonu":
+    st.title("👥 Müşteri Segmentasyonu (RFM)")
+    
+    # Veriyi hesapla
+    rfm_df = calculate_rfm(df)
+    
+    # 1. Bar Chart (Segment Dağılımı)
+    st.subheader("Müşteri Kitlemizin Dağılımı")
+    segment_counts = rfm_df['Segment'].value_counts().reset_index()
+    segment_counts.columns = ['Segment', 'Müşteri Sayısı']
+    
+    fig_bar = px.bar(
+        segment_counts, 
+        x='Müşteri Sayısı', 
+        y='Segment', 
+        color='Segment',
+        orientation='h', # Yatay çubuk grafik daha rahat okunur
+        text_auto=True
+    )
+    fig_bar.update_layout(showlegend=False) # Renkler zaten belli, sağdaki lejantı gizleyelim yer kaplamasın
+    st.plotly_chart(fig_bar, use_container_width=True)
+    
+    st.markdown("---")
+    
+    # 2. Şampiyonlar Tablosu (En Değerli Müşteriler)
+    st.subheader("🏆 VIP Müşterilerimiz (Şampiyonlar)")
+    champions = rfm_df[rfm_df['Segment'] == 'Champions'].reset_index()
+    
+    # Ekranda şık durması için sadece önemli kolonları alıp isimlendiriyoruz
+    champions_display = champions[['CustomerID', 'Recency', 'Frequency', 'Monetary']]
+    champions_display = champions_display.sort_values(by='Monetary', ascending=False).head(15) # En çok harcayan ilk 15 VIP
+    champions_display = champions_display.rename(columns={
+        'CustomerID': 'Müşteri ID', 
+        'Recency': 'Son Alışveriş (Gün Önce)', 
+        'Frequency': 'Toplam Sipariş', 
+        'Monetary': 'Toplam Harcama (₺)'
+    })
+    champions_display['Toplam Harcama (₺)'] = champions_display['Toplam Harcama (₺)'].apply(lambda x: f"{x:,.0f}".replace(',', '.'))
+    st.dataframe(champions_display, use_container_width=True, hide_index=True)
