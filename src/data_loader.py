@@ -11,7 +11,7 @@ def load_data():
     # 1. Dosya Yollarını Dinamik Belirleme
     # Bu dosyanın (data_loader.py) olduğu yerden 2 üst klasöre çık, data/processed'a gir.
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    DATA_PATH = os.path.join(BASE_DIR, 'data', 'processed')
+    DATA_PATH = os.path.join(BASE_DIR, 'data')
 
     try:
         # 2. Dosyaları Oku

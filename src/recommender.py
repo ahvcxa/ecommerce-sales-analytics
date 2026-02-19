@@ -7,8 +7,7 @@ import os
 
 # --- 1. SİSTEM BAŞLARKEN BİR KERE ÇALIŞACAK KISIM (PERFORMANS İÇİN) ---
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MATRIX_PATH = os.path.join(BASE_DIR, 'data', 'processed', 'user_item_matrix.csv')
-
+MATRIX_PATH = os.path.join(BASE_DIR, 'data', 'user_item_matrix.csv')
 # Tabloyu oku
 # Eren'in matrix benzerlik tablosu.
 df_matrix = pd.read_csv(MATRIX_PATH, index_col=0)

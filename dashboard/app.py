@@ -1,30 +1,77 @@
-# Batuhan'ın Streamlit kodu. src'deki fonksiyonları çağıracak
-
 import streamlit as st
 import sys
 import os
+import pandas as pd
+import plotly.express as px # Alan grafiği için eklendi
 
-# BEST PRACTICE: Python'un 'src' klasörünü bulabilmesi için ana dizini sisteme tanıtıyoruz
+# Ana dizini sisteme tanıtıyoruz
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR)
 
-# Artık kendi yazdığın beyni buraya çağırabilirsin!
-from src.recommender import get_recommendations, sim_df
+# Tüm fonksiyonları içeri aktarıyoruz
+from src.data_loader import load_data
+from src.analysis import calculate_kpis, get_monthly_sales, get_category_performance
+from src.recommender import get_recommendations, sim_df # Batuhan'ın importları eklendi
 
-# Web sitesinin başlığı
-st.title("E-Ticaret Akıllı Öneri Motoru 🚀")
-st.write("Müşterilerin sepet alışkanlıklarına göre ürün önerileri.")
+# Sayfa Ayarları
+st.set_page_config(page_title="E-Ticaret Dashboard", layout="wide")
 
-# Kullanıcıya rastgele yazı yazdırmak yerine, veritabanındaki ürünleri bir açılır menü (Dropdown) ile sunalım
-urun_listesi = sim_df.columns.tolist()
-secilen_urun = st.selectbox("Lütfen bir ürün seçin:", urun_listesi)
+@st.cache_data
+def fetch_data():
+    return load_data()
 
-# Butona basıldığında olacaklar
-if st.button("Benzer Ürünleri Öner"):
-    st.success(f"**{secilen_urun}** alan müşterilerimizin ilgilendiği diğer ürünler:")
+df = fetch_data()
+
+# --- SOL MENÜ ---
+st.sidebar.title("Navigasyon 🧭")
+secilen_sayfa = st.sidebar.radio("Sayfa Seçin:", ["Genel Bakış", "Kategori Analizi", "Akıllı Öneri Motoru"])
+
+if df.empty:
+    st.error("Veri yüklenemedi! Lütfen terminali kontrol et.")
+    st.stop()
+
+# --- SAYFALAR ---
+
+if secilen_sayfa == "Genel Bakış":
+    st.title("📊 Satış Trendleri ve KPI'lar")
     
-    oneriler = get_recommendations(secilen_urun)
+    # 1. KPI Kartları
+    kpis = calculate_kpis(df)
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Toplam Ciro", f"₺{kpis['total_revenue']:,.0f}")
+    col2.metric("Toplam Sipariş", kpis['total_orders'])
+    col3.metric("Müşteri Sayısı", kpis['total_customers'])
+    col4.metric("Ortalama Sepet", f"₺{kpis['avg_order_value']:,.0f}")
     
-    # Gelen listeyi ekranda alt alta şık bir şekilde yazdırıyoruz
-    for i, urun in enumerate(oneriler, 1):
-        st.write(f"{i}. {urun}")
+    st.markdown("---")
+    
+    # 2. Aylık Satış Trendi (Alan Grafiği)
+    st.subheader("Aylık Ciro Trendi")
+    monthly_sales = get_monthly_sales(df)
+    
+    fig = px.area(
+        x=monthly_sales.index, 
+        y=monthly_sales.values, 
+        labels={'x': 'Tarih', 'y': 'Toplam Ciro (₺)'},
+        color_discrete_sequence=['#636EFA'] # Hoş bir mavi tonu
+    )
+    fig.update_layout(margin=dict(l=0, r=0, t=30, b=0)) # Boşlukları kırptık
+    st.plotly_chart(fig, use_container_width=True)
+
+elif secilen_sayfa == "Kategori Analizi":
+    st.title("📦 Kategori ve Ürün Performansı")
+    st.write("*(Buraya kategoriler gelecek)*")
+    
+elif secilen_sayfa == "Akıllı Öneri Motoru":
+    # Batuhan'ın kodları tamamen buraya taşındı
+    st.title("🚀 E-Ticaret Akıllı Öneri Motoru")
+    st.write("Müşterilerin sepet alışkanlıklarına göre ürün önerileri.")
+
+    urun_listesi = sim_df.columns.tolist()
+    secilen_urun = st.selectbox("Lütfen bir ürün seçin:", urun_listesi)
+
+    if st.button("Benzer Ürünleri Öner"):
+        st.success(f"**{secilen_urun}** alan müşterilerimizin ilgilendiği diğer ürünler:")
+        oneriler = get_recommendations(secilen_urun)
+        for i, urun in enumerate(oneriler, 1):
+            st.write(f"{i}. {urun}")
