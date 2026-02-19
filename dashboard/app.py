@@ -25,7 +25,7 @@ df = fetch_data()
 
 # --- SOL MENÜ ---
 st.sidebar.title("Navigasyon 🧭")
-secilen_sayfa = st.sidebar.radio("Sayfa Seçin:", ["Genel Bakış", "Kategori Analizi", "Bölgesel Analiz", "Müşteri Segmentasyonu", "Sepet Analizi", "Akıllı Öneri Motoru"])
+secilen_sayfa = st.sidebar.selectbox("Sayfa Seçin:", ["Genel Bakış", "Kategori Analizi", "Bölgesel Analiz", "Müşteri Segmentasyonu", "Sepet Analizi", "Akıllı Öneri Motoru"])
 st.sidebar.markdown("---")
 st.sidebar.subheader("📅 Tarih Filtresi")
     
@@ -40,7 +40,10 @@ secilen_tarihler = st.sidebar.date_input(
     min_value=min_date, 
     max_value=max_date
 )
-    
+st.sidebar.markdown("---")
+st.sidebar.caption("🍀 **Project Team** 🍀")
+st.sidebar.write("Batuhan • Adal Su • Eren • Dilara")
+st.sidebar.caption("v1.0.0 | © 2026 BAED")
     # Eğer kullanıcı iki tarih seçtiyse veriyi filtrele
 if len(secilen_tarihler) == 2:
         baslangic, bitis = secilen_tarihler
