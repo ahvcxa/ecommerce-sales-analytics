@@ -1,0 +1,6 @@
+[theme]
+primaryColor = "#228B22" # Yonca yeşili 
+backgroundColor = "#FFFFFF" # Arka plan beyaz
+secondaryBackgroundColor = "#F0F2F6" # Yan menü açık gri
+textColor = "#262730" # Yazı rengi koyu gri
+font = "sans serif"
